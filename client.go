@@ -10,20 +10,26 @@ const (
 )
 
 type Client struct {
-	serveDuration int
-	waitDuration  int
+	serveSeconds int
+	waitSeconds  int
+
+	rules map[string]int
 }
 
 func ProduceClient() *Client {
 	if rand.Intn(clProduceMax+1) > clProduceMin {
-		return MustProduceClient()
+		return MakeClient()
 	}
 
 	return nil
 }
 
-func MustProduceClient() *Client {
+func MakeClient() *Client {
+	rules := make(map[string]int)
+	rules[WeightRuleName] = rand.Intn(9)
+
 	return &Client{
-		serveDuration: serveMaxSeconds - rand.Intn((serveMaxSeconds-serveMinSeconds)+1),
+		serveSeconds: serveMaxSeconds - rand.Intn((serveMaxSeconds-serveMinSeconds)+1),
+		rules:        rules,
 	}
 }

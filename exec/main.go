@@ -13,15 +13,13 @@ const (
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
-	// Добавить реализацию правил(фильтры) для очереди - клиент должен подходить по всем нужным параметрам, иначе он уходит
-
 	duration := rand.Intn(totalDurMax)
 	q1 := queuesim.NewQueue("q1")
+	q1.AddRule(queuesim.WeightRuleName, queuesim.NewWeightRule(1, 2, 3, 4))
 	q2 := queuesim.NewQueue("q2")
+	q2.AddRule(queuesim.WeightRuleName, queuesim.NewWeightRule(5, 6, 7, 8))
 
 	simulator := queuesim.NewSimulator(q1, q2)
-
 	simulator.SimulateByDuration(duration)
-
 	simulator.PrintResults()
 }

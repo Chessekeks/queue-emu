@@ -2,13 +2,13 @@ package queuesim
 
 import (
 	"fmt"
-	"math/rand"
 )
 
 type Simulator struct {
-	Queues   []*Queue
-	Duration int
-	Clients  []*Client
+	Queues          []*Queue
+	Duration        int
+	Clients         []*Client
+	dropClientCount int
 }
 
 func NewSimulator(queues ...*Queue) *Simulator {
@@ -31,9 +31,19 @@ func (s *Simulator) AddClient(cl *Client) {
 	if cl == nil {
 		return
 	}
-
-	s.Queues[rand.Intn(len(s.Queues))].AddClient(cl)
 	s.Clients = append(s.Clients, cl)
+
+	for idx, q := range s.Queues {
+		for name, val := range cl.rules {
+			if v, ok := q.rules[name]; ok && v.Include(val) {
+				s.Queues[idx].AddClient(cl)
+				return
+			}
+		}
+	}
+
+	s.dropClientCount++
+	//s.Queues[rand.Intn(len(s.Queues))].AddClient(cl)
 }
 
 func (s *Simulator) Tick() {
@@ -49,17 +59,16 @@ func (s Simulator) PrintResults() {
 	var totalServeTime, totalWaitTime float32
 	for _, q := range s.Queues {
 		avrServeTime := q.AvgServeTime()
-		q.PrintAvgServeTime()
 		avrWaitTime := q.AvgWaitTime()
-		q.PrintAvgWaitTime()
-		q.PrintServeCount()
-		q.PrintWaitersCount()
 		totalServeTime += avrServeTime
 		totalWaitTime += avrWaitTime
+
+		q.PrintStats()
 	}
 	totalServeTime /= float32(len(s.Queues))
 	totalWaitTime /= float32(len(s.Queues))
 
+	fmt.Printf("Drop clients count is %d\n", s.dropClientCount)
 	fmt.Printf("Total avarage serve time is %.2f seconds\n", totalServeTime)
 	fmt.Printf("Total avarage wait time is %.2f seconds\n", totalWaitTime)
 }
@@ -76,7 +85,7 @@ func (s *Simulator) SimulateByDuration(dur int) {
 
 func (s *Simulator) SimulateByClients(clientCount int) {
 	for idx := 0; idx < clientCount; idx++ {
-		s.Clients = append(s.Clients, MustProduceClient())
+		s.Clients = append(s.Clients, MakeClient())
 	}
 
 	dur := 0
