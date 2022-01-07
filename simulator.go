@@ -44,7 +44,7 @@ func (s *Simulator) Tick() {
 
 func (s Simulator) PrintResults() {
 	fmt.Printf("Simulation time: %d seconds\n", s.Duration)
-	fmt.Printf("Simulation client counts: %d", len(s.Clients))
+	fmt.Printf("Simulation client counts: %d\n", len(s.Clients))
 
 	var totalServeTime, totalWaitTime float32
 	for _, q := range s.Queues {
@@ -52,7 +52,8 @@ func (s Simulator) PrintResults() {
 		q.PrintAvgServeTime()
 		avrWaitTime := q.AvgWaitTime()
 		q.PrintAvgWaitTime()
-
+		q.PrintServeCount()
+		q.PrintWaitersCount()
 		totalServeTime += avrServeTime
 		totalWaitTime += avrWaitTime
 	}

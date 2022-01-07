@@ -10,9 +10,8 @@ type Queue struct {
 	waiters                []*Client
 
 	serveDuration float32
-	serveCount    int
 	waitDuration  float32
-	waitCount     int
+	clientCount   int
 }
 
 func NewQueue(name string) *Queue {
@@ -51,9 +50,8 @@ func (q *Queue) Tick() {
 	}
 	if curClient.serveDuration == q.curClientServeDuration {
 		q.serveDuration += float32(q.curClientServeDuration)
-		q.serveCount++
+		q.clientCount++
 		q.waitDuration += float32(q.curClient.waitDuration)
-		q.waitCount++
 		q.curClientServeDuration = 0
 		curClient = nil
 	}
@@ -61,7 +59,7 @@ func (q *Queue) Tick() {
 }
 
 func (q Queue) AvgServeTime() float32 {
-	return q.serveDuration / float32(q.serveCount)
+	return q.serveDuration / float32(q.clientCount)
 }
 
 func (q Queue) PrintAvgServeTime() {
@@ -69,9 +67,17 @@ func (q Queue) PrintAvgServeTime() {
 }
 
 func (q Queue) AvgWaitTime() float32 {
-	return q.waitDuration / float32(q.waitCount)
+	return q.waitDuration / float32(q.clientCount)
 }
 
 func (q Queue) PrintAvgWaitTime() {
 	fmt.Printf("Queue %s avarage wait time is %.2f seconds\n", q.name, q.AvgWaitTime())
+}
+
+func (q Queue) PrintServeCount() {
+	fmt.Printf("Queue %s served %d clients\n", q.name, q.clientCount)
+}
+
+func (q Queue) PrintWaitersCount() {
+	fmt.Printf("Queue %s has %d waiting clients\n", q.name, len(q.waiters))
 }
